@@ -5,7 +5,7 @@ require 'omniauth-oauth2'
 module OmniAuth
   module Strategies
     class Okta < OmniAuth::Strategies::OAuth2
-      DEFAULT_SCOPE = %{openid profile email}.freeze
+      DEFAULT_SCOPE = %(openid profile email)
 
       option :name, 'okta'
       option :skip_jwt, false
@@ -13,13 +13,13 @@ module OmniAuth
 
       # These are defaults that need to be overriden on an implementation
       option :client_options, {
-        site:                 'https://your-org.okta.com',
-        authorize_url:        'https://your-org.okta.com/oauth2/default/v1/authorize',
-        token_url:            'https://your-org.okta.com/oauth2/default/v1/token',
-        user_info_url:        'https://your-org.okta.com/oauth2/default/v1/userinfo',
-        response_type:        'id_token',
+        site: 'https://your-org.okta.com',
+        authorize_url: 'https://your-org.okta.com/oauth2/default/v1/authorize',
+        token_url: 'https://your-org.okta.com/oauth2/default/v1/token',
+        user_info_url: 'https://your-org.okta.com/oauth2/default/v1/userinfo',
+        response_type: 'id_token',
         authorization_server: 'default',
-        audience:             'api://default'
+        audience: 'api://default'
       }
       option :scope, DEFAULT_SCOPE
 
@@ -27,11 +27,11 @@ module OmniAuth
 
       info do
         {
-          name:       raw_info['name'],
-          email:      raw_info['email'],
+          name: raw_info['name'],
+          email: raw_info['email'],
           first_name: raw_info['given_name'],
-          last_name:  raw_info['family_name'],
-          image:      raw_info['picture']
+          last_name: raw_info['family_name'],
+          image: raw_info['picture']
         }
       end
 
@@ -42,9 +42,7 @@ module OmniAuth
           if access_token
             h[:id_token] = access_token.token
 
-            if !options[:skip_jwt] && !access_token.token.nil?
-              h[:id_info] = validated_token(access_token.token)
-            end
+            h[:id_info] = validated_token(access_token.token) if !options[:skip_jwt] && !access_token.token.nil?
           end
         end
       end
@@ -53,15 +51,15 @@ module OmniAuth
         options.fetch(:client_options)
       end
 
-      alias :oauth2_access_token :access_token
+      alias oauth2_access_token access_token
 
       def access_token
         if oauth2_access_token
           ::OAuth2::AccessToken.new(client, oauth2_access_token.token, {
-            refresh_token: oauth2_access_token.refresh_token,
-            expires_in:    oauth2_access_token.expires_in,
-            expires_at:    oauth2_access_token.expires_at
-          })
+                                      refresh_token: oauth2_access_token.refresh_token,
+                                      expires_in: oauth2_access_token.expires_in,
+                                      expires_at: oauth2_access_token.expires_at
+                                    })
         end
       end
 
@@ -72,7 +70,7 @@ module OmniAuth
       end
 
       def callback_url
-        options[:redirect_uri] || (full_host + script_name + callback_path)
+        options[:redirect_uri] || (full_host + script_name + callback_path + "?code_challenge=#{options.pkce_verifier}&code_challenge_method=S256")
       end
 
       # Returns the qualified URL for the authorization server
@@ -103,17 +101,16 @@ module OmniAuth
         JWT.decode(token,
                    nil,
                    false,
-                   verify_iss:        true,
-                   verify_aud:        true,
-                   iss:               authorization_server_path,
-                   aud:               authorization_server_audience,
-                   verify_sub:        true,
+                   verify_iss: true,
+                   verify_aud: true,
+                   iss: authorization_server_path,
+                   aud: authorization_server_audience,
+                   verify_sub: true,
                    verify_expiration: true,
                    verify_not_before: true,
-                   verify_iat:        true,
-                   verify_jti:        false,
-                   leeway:            options[:jwt_leeway]
-        ).first
+                   verify_iat: true,
+                   verify_jti: false,
+                   leeway: options[:jwt_leeway]).first
       end
     end
   end
